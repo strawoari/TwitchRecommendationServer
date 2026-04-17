@@ -6,8 +6,8 @@ services:
     image: mysql:latest
     environment:
       MYSQL_ROOT_HOST: '%'
-      MYSQL_DATABASE: twitch
-      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: database
+      MYSQL_ROOT_PASSWORD: password
       TZ: UTC
     volumes:
       - mysql-local:/var/lib/mysql

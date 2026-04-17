@@ -4,7 +4,8 @@ HELP.md
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-**/src/main/resources/application.yml
+application.yml
+docker-compose.yml
 **/src/main/resources/credentials.json
 /.history
 ### STS ###
@@ -37,3 +38,4 @@ out/
 
 ### VS Code ###
 .vscode/
+src/main/resources/credentials.json
