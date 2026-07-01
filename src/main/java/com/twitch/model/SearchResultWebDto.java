@@ -1,2 +1,8 @@
-package com.twitch.model;public class SearchResultWebDto {
+package com.twitch.model;
+
+import java.util.List;
+
+public record SearchResultWebDto (
+        List<BookWebDto> books
+){
 }

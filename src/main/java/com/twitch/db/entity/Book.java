@@ -7,23 +7,28 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 @Entity
 @Table(name = "books")
 public class Book {
     @Id @GeneratedValue
     private Long id;
-    private Long tmdbId;
+    private Long gutenbergId;
     private String title;
-    private String posterUrl;
-    private String backdropUrl;
-    private LocalDateTime releaseDate;
-    private String genreValue;
-    private Boolean adult;
-    private Integer runtime;
-    private String languageValue;
-    private String overview;
-    private String tagline;
-    private String homepageUrl;
+    private String subjectsValue;
+    private String sneakPeek;
+    private String authorsValue;
+    private Integer downloadCount;
+    private String coverImage;
 }

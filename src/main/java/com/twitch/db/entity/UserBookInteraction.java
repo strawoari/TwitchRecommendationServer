@@ -13,14 +13,24 @@ import jakarta.persistence.Id;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 @Entity
 @Table(name = "user_book_interactions")
 public class UserBookInteraction {
     @Id @GeneratedValue
     private Long id;
     private Long userId;
-    private Long movieId;
+    private Long bookId;
 
     @Enumerated(EnumType.STRING)
     private InteractionType type; // LIKED, WATCHLIST, RATED

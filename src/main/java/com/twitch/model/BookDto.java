@@ -1,4 +1,4 @@
-package com.twitch.external.model;
+package com.twitch.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -18,9 +18,4 @@ public record BookDto(
         @JsonProperty("reading_ease_score") String readingEaseScore,
         @JsonProperty("cover_image") String coverImage
 ) {
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public record AuthorReference(
-            Long id,
-            String name
-    ) {}
 }

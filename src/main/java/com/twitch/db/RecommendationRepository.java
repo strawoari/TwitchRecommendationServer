@@ -1,20 +1,11 @@
 package com.twitch.db;
 
 
-import com.twitch.db.entity.FavoriteRecordEntity;
-
-import com.twitch.db.entity.MovieRecommendation;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.ListCrudRepository;
+import com.twitch.db.entity.BookRecommendation;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 
-import java.util.List;
-import org.springframework.data.repository.query.Param;
-import org.springframework.transaction.annotation.Transactional;
-
-
-public interface RecommendationRepository extends ListCrudRepository<MovieRecommendation, Long> {
+public interface RecommendationRepository extends JpaRepository<BookRecommendation, Long> {
 }
 
 

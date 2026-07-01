@@ -1,4 +1,4 @@
-package com.twitch.external.model;
+package com.twitch.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;

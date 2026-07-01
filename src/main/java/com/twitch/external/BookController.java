@@ -1,11 +1,13 @@
 package com.twitch.external;
 
-import com.twitch.external.model.BookSearchResultDto;
+import com.twitch.model.BookSearchResultDto;
+import com.twitch.model.SearchResultWebDto;
+import java.util.ArrayList;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/movies")
+@RequestMapping("/api/books")
 public class BookController {
 
     private final BookApiClient bookApiClient;
@@ -15,7 +17,7 @@ public class BookController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<BookSearchResultDto> searchMovies(
+    public ResponseEntity<SearchResultWebDto> searchMovies(
             @RequestParam String query,
             @RequestParam(required = false, defaultValue = "1") Integer page) {
 
@@ -24,6 +26,6 @@ public class BookController {
         }
 
         BookSearchResultDto results = bookApiClient.searchBooks(query.trim(), page);
-        return ResponseEntity.ok(results);
+        return ResponseEntity.ok(new SearchResultWebDto(new ArrayList<>()));
     }
 }

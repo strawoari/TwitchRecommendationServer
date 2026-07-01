@@ -1,7 +1,8 @@
 package com.twitch.external;
 
-import com.twitch.external.model.TmdbMovieDto;
-import com.twitch.external.model.TmdbSearchResultDto;
+import com.twitch.model.BookDto;
+import com.twitch.model.BookSearchResultDto;
+import com.twitch.model.BookTextResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,24 +11,25 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(name = "gutenberg-api")
 public interface BookApiClient {
 
-    @GetMapping("/movie/{movie_id}")
-    TmdbMovieDto getMovie(
-            @PathVariable("movie_id") long movieId,
-            @RequestParam(value = "language", defaultValue = "en-US") String language
+    /**
+     * Handles GET requests to search for books with various optional parameters
+     *
+     * @param query The search query string
+     * @param page_size Number of results per page (optional)
+     * @return TmdbSearchResultDto containing the search results
+     */
+    @GetMapping("/books")
+    BookSearchResultDto searchBooks(
+            @RequestParam() String query,    // Search query string for finding books
+            @RequestParam(required = false) Integer page_size // Number of results per page
     );
 
-/**
- * Handles GET requests to search for movies
- *
- * @param query The search term for movies
- * @param language The language code for results (defaults to "en-US")
- * @param page The page number of results to return (defaults to 1)
- * @return TmdbSearchResultDto containing the search results
- */
-    @GetMapping("/search/movie")
-    TmdbSearchResultDto searchMovie(
-            @RequestParam("query") String query,           // The search query string
-            @RequestParam(value = "language", defaultValue = "en-US") String language,  // Language parameter with default value
-            @RequestParam(value = "page", defaultValue = "1") int page    // Page number parameter with default value
+    @GetMapping("/books/{id}")
+    BookDto getBookById(@PathVariable("id") Long id);
+
+    @GetMapping("/books/{id}/text")
+    BookTextResponse getBookText(
+            @PathVariable("id") Long id,
+            @RequestParam(value = "cleaning_mode", defaultValue = "simple") String cleaningMode
     );
 }

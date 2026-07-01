@@ -1,7 +1,10 @@
 package com.twitch;
 
+import feign.RequestInterceptor;
+import feign.RequestTemplate;
 import java.io.IOException;
 import javax.sql.DataSource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.reactive.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,6 +32,23 @@ import org.springframework.security.web.authentication.logout.HttpStatusReturnin
 @Configuration
 public class AppConfig {
 
+    @Value("${rapidapi.gutenberg.key}")
+    private String apiKey;
+
+    @Value("${rapidapi.gutenberg.host}")
+    private String apiHost;
+
+    @Bean
+    public RequestInterceptor rapidApiInterceptor() {
+        return (RequestTemplate template) -> {
+            // Inject headers for all requests made by the 'gutenberg-api' client
+            if ("gutenberg-api".equals(template.feignTarget().name())) {
+                template.header("x-rapidapi-key", apiKey);
+                template.header("x-rapidapi-host", apiHost);
+                template.header("Content-Type", "application/json");
+            }
+        };
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -41,6 +61,7 @@ public class AppConfig {
                                 .requestMatchers(HttpMethod.GET, "/", "/index.html", "/*.json", "/*.png", "/static/**").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/login", "/register", "/logout").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/recommendation", "/game").permitAll()
+                                .requestMatchers("/actuator/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .exceptionHandling()
