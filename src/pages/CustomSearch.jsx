@@ -1,50 +1,40 @@
 import { useState } from "react"
-import { searchGameByName } from '../utils'
+import { searchBooks } from '../utils'
 import { message, Button, Modal, Form, Input } from 'antd'
 import { SearchOutlined } from '@ant-design/icons';
- 
-const darkInputStyle = {
-  background: '#0a0a0a',
-  border: '1px solid #2a2a2a',
-  borderRadius: 4,
-  color: '#e0e0e0',
-  height: 42,
-}
- 
+
 function CustomSearch({ onSuccess, headerMode = false }) {
   const [displayModal, setDisplayModal] = useState(false)
   const [loading, setLoading] = useState(false)
- 
-  const onSubmit = (data) => {
-    setLoading(true)
-    searchGameByName(data.game_name)
+
+  const handleSearch = (query) => {
+    if (!query || !query.trim()) return;
+    setLoading(true);
+    searchBooks(query.trim())
       .then((result) => {
-        setDisplayModal(false)
-        setLoading(false)
-        onSuccess(result)
-      }).catch((err) => {
-        setLoading(false)
-        message.error(err.message)
+        setLoading(false);
+        setDisplayModal(false);
+        onSuccess(result);
       })
-  }
- 
-  // Header mode: inline search input that opens a modal on submit
+      .catch((err) => {
+        setLoading(false);
+        message.error(err.message);
+      });
+  };
+
+  const onSubmit = (data) => {
+    handleSearch(data.book_query);
+  };
+
+  // Header mode: inline search input
   if (headerMode) {
     return (
       <>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', maxWidth: 480 }}>
           <Input
-            // style={{ backgroundColor: 'black', color: 'white', borderColor: 'black' }}
-            placeholder="Search for a game..."
+            placeholder="Search for a book..."
             prefix={<SearchOutlined style={{ color: '#555' }} />}
-            onPressEnter={(e) => {
-              const val = e.target.value.trim()
-              if (!val) return
-              setLoading(true)
-              searchGameByName(val)
-                .then((result) => { setLoading(false); onSuccess(result) })
-                .catch((err) => { setLoading(false); message.error(err.message) })
-            }}
+            onPressEnter={(e) => handleSearch(e.target.value)}
             style={{
               background: '#1a1a1a',
               border: '1px solid #2a2a2a',
@@ -72,7 +62,7 @@ function CustomSearch({ onSuccess, headerMode = false }) {
             ADV
           </Button>
         </div>
- 
+
         {/* Advanced search modal */}
         <Modal
           title={
@@ -82,7 +72,7 @@ function CustomSearch({ onSuccess, headerMode = false }) {
               letterSpacing: '0.1em',
               color: '#fff',
             }}>
-              <span style={{ color: '#e63232' }}>—</span> SEARCH GAMES
+              <span style={{ color: '#e63232' }}>—</span> SEARCH BOOKS
             </span>
           }
           open={displayModal}
@@ -95,9 +85,18 @@ function CustomSearch({ onSuccess, headerMode = false }) {
             mask: { backdropFilter: 'blur(4px)', background: 'rgba(0,0,0,0.75)' },
           }}
         >
-          <Form name="custom_search_modal" onFinish={onSubmit} style={{ marginTop: 8 }}>
-            <Form.Item name="game_name" rules={[{ required: true, message: 'Please enter a game name' }]}>
-              <Input placeholder="Game name" style={darkInputStyle} />
+          <Form name="book_search_modal" onFinish={onSubmit} style={{ marginTop: 8 }}>
+            <Form.Item name="book_query" rules={[{ required: true, message: 'Please enter a book title or author' }]}>
+              <Input
+                placeholder="Book title or author name"
+                style={{
+                  background: '#0a0a0a',
+                  border: '1px solid #2a2a2a',
+                  borderRadius: 4,
+                  color: '#e0e0e0',
+                  height: 42,
+                }}
+              />
             </Form.Item>
             <Form.Item style={{ marginBottom: 0, marginTop: 24 }}>
               <Button
@@ -124,8 +123,8 @@ function CustomSearch({ onSuccess, headerMode = false }) {
       </>
     )
   }
- 
-  // Sidebar mode (fallback, not used currently)
+
+  // Default mode
   return (
     <>
       <Button
@@ -144,18 +143,18 @@ function CustomSearch({ onSuccess, headerMode = false }) {
           letterSpacing: '0.08em',
         }}
       >
-        Custom Search
+        Search Books
       </Button>
       <Modal
-        title="Search Games"
+        title="Search Books"
         open={displayModal}
         onCancel={() => setDisplayModal(false)}
         footer={null}
         destroyOnClose
       >
-        <Form name="custom_search" onFinish={onSubmit}>
-          <Form.Item name="game_name" rules={[{ required: true, message: 'Please enter a game name' }]}>
-            <Input placeholder="Game name" />
+        <Form name="book_search" onFinish={onSubmit}>
+          <Form.Item name="book_query" rules={[{ required: true, message: 'Please enter a book title or author' }]}>
+            <Input placeholder="Book title or author name" />
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={loading}>Search</Button>
@@ -165,5 +164,5 @@ function CustomSearch({ onSuccess, headerMode = false }) {
     </>
   )
 }
- 
+
 export default CustomSearch

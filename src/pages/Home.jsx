@@ -1,82 +1,221 @@
-import { Button, Card, List, message, Tabs, Tooltip, Empty } from 'antd';
-import { StarOutlined, StarFilled, PlayCircleOutlined } from '@ant-design/icons';
-import { addFavoriteItem, deleteFavoriteItem, getItemUrl } from '../utils';
+import { Button, Card, List, message, Tabs, Tooltip, Empty, Tag, Typography } from 'antd';
+import { StarOutlined, StarFilled, BookOutlined, DownloadOutlined, UserOutlined, HeartOutlined } from '@ant-design/icons';
+import { addFavoriteItem, deleteFavoriteItem, getBookUrl } from '../utils';
 
- 
-// ✅ UI FIX: dark card styles matching red-black theme
+const { Text, Paragraph } = Typography;
+
+// ─── Styles ────────────────────────────────────────────────────────
+
 const cardStyle = {
   background: '#1a1a1a',
   border: '1px solid #222',
-  borderRadius: 6,
+  borderRadius: 8,
   overflow: 'hidden',
+  transition: 'border-color 0.2s, transform 0.2s',
+  height: '100%',
 }
- 
+
 const cardHeadStyle = {
   background: '#161616',
   borderBottom: '1px solid #222',
   color: '#e0e0e0',
-  fontSize: 12,
-  padding: '0 10px',
-  minHeight: 44,
+  fontSize: 13,
+  padding: '0 12px',
+  minHeight: 48,
 }
- 
-const processUrl = (url) => url
-  .replace('%{height}', '252')
-  .replace('%{width}', '480')
-  .replace('{height}', '252')
-  .replace('{width}', '480');
- 
-const renderCardTitle = (item, loggedIn, favs = [], favOnChange) => {
-  const title = `${item.broadcaster_name} - ${item.title}`;
-  const isFav = favs.find((fav) => fav.twitch_id === item.twitch_id);
- 
+
+// ─── Book Card ─────────────────────────────────────────────────────
+
+const BookCard = ({ book, loggedIn, favoriteBooks = [], favoriteOnChange }) => {
+  const isFav = favoriteBooks.some((fav) => fav.gutenbergId === book.gutenbergId);
+
   const favOnClick = () => {
     const action = isFav ? deleteFavoriteItem : addFavoriteItem;
-    action(item)
-      .then(() => favOnChange())
+    action(book)
+      .then(() => favoriteOnChange())
       .catch(err => message.error(err.message));
   }
- 
+
+  const authors = book.authors?.join(', ') || 'Unknown Author';
+  const subjects = book.subjects?.slice(0, 3) || [];
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      {loggedIn && (
-        // ✅ UI FIX: star button styled to match theme
-        <Tooltip title={isFav ? "Remove from favorites" : "Add to favorites"}>
-          <Button
-            shape="circle"
-            size="small"
-            icon={isFav ? <StarFilled style={{ color: '#e63232' }} /> : <StarOutlined style={{ color: '#555' }} />}
-            onClick={favOnClick}
-            style={{
-              background: 'transparent',
-              border: `1px solid ${isFav ? '#e63232' : '#333'}`,
-              flexShrink: 0,
-            }}
-          />
-        </Tooltip>
-      )}
-      <div style={{
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-        color: '#ccc',
-        fontSize: 12,
-        fontFamily: "'DM Sans', sans-serif",
-      }}>
-        <Tooltip title={title}>
-          <span>{title}</span>
-        </Tooltip>
+    <Card
+      style={cardStyle}
+      styles={{ header: cardHeadStyle, body: { padding: 0 } }}
+      title={
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {loggedIn && (
+            <Tooltip title={isFav ? "Remove from favorites" : "Add to favorites"}>
+              <Button
+                shape="circle"
+                size="small"
+                icon={isFav ? <StarFilled style={{ color: '#e63232' }} /> : <StarOutlined style={{ color: '#555' }} />}
+                onClick={favOnClick}
+                style={{
+                  background: 'transparent',
+                  border: `1px solid ${isFav ? '#e63232' : '#333'}`,
+                  flexShrink: 0,
+                }}
+              />
+            </Tooltip>
+          )}
+          <div style={{
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            color: '#ccc',
+            fontSize: 13,
+            fontFamily: "'DM Sans', sans-serif",
+          }}>
+            <Tooltip title={book.title}>
+              <span>{book.title}</span>
+            </Tooltip>
+          </div>
+        </div>
+      }
+      onMouseEnter={e => {
+        e.currentTarget.style.borderColor = '#e63232';
+        e.currentTarget.style.transform = 'translateY(-2px)';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.borderColor = '#222';
+        e.currentTarget.style.transform = 'translateY(0)';
+      }}
+    >
+      <a
+        href={getBookUrl(book)}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ display: 'block', width: '100%' }}
+      >
+        {/* Cover Image */}
+        <div style={{
+          width: '100%',
+          aspectRatio: '3/4',
+          background: '#0f0f0f',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+        }}>
+          {book.coverImage ? (
+            <img
+              alt={book.title}
+              src={book.coverImage}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+              }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+          ) : null}
+          <div style={{
+            display: book.coverImage ? 'none' : 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 8,
+            color: '#333',
+          }}>
+            <BookOutlined style={{ fontSize: 48 }} />
+            <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace" }}>No Cover</span>
+          </div>
+        </div>
+      </a>
+
+      {/* Book Info */}
+      <div style={{ padding: '12px 14px' }}>
+        {/* Author */}
+        <div style={{
+          color: '#888',
+          fontSize: 11,
+          fontFamily: "'DM Mono', monospace",
+          marginBottom: 8,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+        }}>
+          <UserOutlined style={{ fontSize: 10 }} />
+          <span style={{
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {authors}
+          </span>
+        </div>
+
+        {/* Subjects */}
+        {subjects.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
+            {subjects.map((subject, i) => (
+              <Tag
+                key={i}
+                style={{
+                  background: '#2a2a2a',
+                  border: '1px solid #333',
+                  color: '#888',
+                  fontSize: 10,
+                  borderRadius: 3,
+                  margin: 0,
+                }}
+              >
+                {subject.length > 20 ? subject.slice(0, 20) + '...' : subject}
+              </Tag>
+            ))}
+          </div>
+        )}
+
+        {/* Download Count */}
+        {book.downloadCount && (
+          <div style={{
+            color: '#555',
+            fontSize: 10,
+            fontFamily: "'DM Mono', monospace",
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+          }}>
+            <DownloadOutlined />
+            <span>{book.downloadCount.toLocaleString()} downloads</span>
+          </div>
+        )}
+
+        {/* Sneak Peek */}
+        {book.sneakPeek && (
+          <Tooltip title={book.sneakPeek}>
+            <Paragraph
+              style={{
+                color: '#666',
+                fontSize: 11,
+                fontFamily: "'DM Sans', sans-serif",
+                marginTop: 8,
+                marginBottom: 0,
+                lineHeight: 1.5,
+              }}
+              ellipsis={{ rows: 2 }}
+            >
+              {book.sneakPeek}
+            </Paragraph>
+          </Tooltip>
+        )}
       </div>
-    </div>
-  )
-}
- 
-const renderCardGrid = (data, loggedIn, favs, favOnChange) => {
-  // ✅ UI FIX: proper empty state instead of blank area
-  if (!data || data.length === 0) {
+    </Card>
+  );
+};
+
+// ─── Book Grid ─────────────────────────────────────────────────────
+
+const BookGrid = ({ books, loggedIn, favoriteBooks, favoriteOnChange }) => {
+  if (!books || books.length === 0) {
     return (
       <Empty
-        image={<PlayCircleOutlined style={{ fontSize: 48, color: '#333' }} />}
+        image={<BookOutlined style={{ fontSize: 48, color: '#333' }} />}
         description={
           <span style={{
             color: '#555',
@@ -84,70 +223,104 @@ const renderCardGrid = (data, loggedIn, favs, favOnChange) => {
             fontSize: 12,
             letterSpacing: '0.05em',
           }}>
-            No content to display — select a game or search above
+            No books to display — try searching above
           </span>
         }
         style={{ marginTop: 64 }}
       />
     )
   }
- 
+
   return (
     <List
-      grid={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 4, xxl: 6 }}
-      dataSource={data}
-      renderItem={item => (
+      grid={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 5, xxl: 6 }}
+      dataSource={books}
+      renderItem={book => (
         <List.Item style={{ marginRight: 16, marginBottom: 16 }}>
-          <Card
-            title={renderCardTitle(item, loggedIn, favs, favOnChange)}
-            style={cardStyle}
-            headStyle={cardHeadStyle}
-            bodyStyle={{ padding: 0 }}
-            // ✅ UI FIX: red border on hover
-            onMouseEnter={e => e.currentTarget.style.borderColor = '#e63232'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = '#222'}
-          >
-            <a
-            href={getItemUrl(item)}   // ← was: href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ display: 'block', width: '100%' }}
-            >
-                <img
-                    alt={item.title || 'thumbnail'}
-                    src={processUrl(item.thumbnail_url)}
-                    style={{ width: '100%', display: 'block' }}
-                />
-            </a>
-          </Card>
+          <BookCard
+            book={book}
+            loggedIn={loggedIn}
+            favoriteBooks={favoriteBooks}
+            favoriteOnChange={favoriteOnChange}
+          />
         </List.Item>
       )}
     />
   )
 }
- 
-const Home = ({ resources, loggedIn, favoriteItems, favoriteOnChange }) => {
-  const { videos = [], streams = []} = resources;
-  const { videos: favVideos = [], streams: favStreams = []} = favoriteItems || {};
- 
-  // ✅ FIX: replaced deprecated TabPane with items prop (Ant Design v5)
-  // ✅ UI FIX: red active tab indicator via CSS override
+
+// ─── Home Component ────────────────────────────────────────────────
+
+const Home = ({ searchResults, recommendations, loggedIn, favoriteBooks, favoriteOnChange }) => {
+  // If search results are present, show them
+  if (searchResults && searchResults.books && searchResults.books.length > 0) {
+    return (
+      <div>
+        <div style={{
+          color: '#fff',
+          fontFamily: "'Bebas Neue', 'Impact', sans-serif",
+          fontSize: 22,
+          letterSpacing: '0.1em',
+          marginBottom: 24,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+        }}>
+          <span style={{ color: '#e63232' }}>—</span> SEARCH RESULTS
+        </div>
+        <BookGrid
+          books={searchResults.books}
+          loggedIn={loggedIn}
+          favoriteBooks={favoriteBooks}
+          favoriteOnChange={favoriteOnChange}
+        />
+      </div>
+    )
+  }
+
+  // Otherwise show recommendations
+  const forYou = recommendations?.for_you || [];
+  const fromFriends = recommendations?.friend_approved || [];
+
   const tabItems = [
     {
-      key: 'stream',
-      label: 'Streams',
-      children: renderCardGrid(streams, loggedIn, favStreams, favoriteOnChange),
+      key: 'for_you',
+      label: (
+        <span>
+          <HeartOutlined /> For You
+          <span style={{ color: '#666', fontSize: 11, marginLeft: 6 }}>({forYou.length})</span>
+        </span>
+      ),
+      children: (
+        <BookGrid
+          books={forYou}
+          loggedIn={loggedIn}
+          favoriteBooks={favoriteBooks}
+          favoriteOnChange={favoriteOnChange}
+        />
+      ),
     },
     {
-      key: 'videos',
-      label: 'Videos',
-      children: renderCardGrid(videos, loggedIn, favVideos, favoriteOnChange),
+      key: 'friends',
+      label: (
+        <span>
+          <UserOutlined /> From Friends
+          <span style={{ color: '#666', fontSize: 11, marginLeft: 6 }}>({fromFriends.length})</span>
+        </span>
+      ),
+      children: (
+        <BookGrid
+          books={fromFriends}
+          loggedIn={loggedIn}
+          favoriteBooks={favoriteBooks}
+          favoriteOnChange={favoriteOnChange}
+        />
+      ),
     },
   ]
- 
+
   return (
     <>
-      {/* ✅ UI FIX: inline style override to turn tab indicator from blue → red */}
       <style>{`
         .home-tabs .ant-tabs-ink-bar { background: #e63232 !important; }
         .home-tabs .ant-tabs-tab-active .ant-tabs-tab-btn { color: #e63232 !important; }
@@ -155,14 +328,28 @@ const Home = ({ resources, loggedIn, favoriteItems, favoriteOnChange }) => {
         .home-tabs .ant-tabs-tab-btn { color: #888; }
         .home-tabs .ant-tabs-nav::before { border-color: #222 !important; }
       `}</style>
+
+      <div style={{
+        color: '#fff',
+        fontFamily: "'Bebas Neue', 'Impact', sans-serif",
+        fontSize: 22,
+        letterSpacing: '0.1em',
+        marginBottom: 16,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+      }}>
+        <span style={{ color: '#e63232' }}>—</span> RECOMMENDATIONS
+      </div>
+
       <Tabs
         className="home-tabs"
-        defaultActiveKey="stream"
+        defaultActiveKey="for_you"
         items={tabItems}
         destroyInactiveTabPane={false}
       />
     </>
   )
 }
- 
+
 export default Home;

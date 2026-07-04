@@ -1,9 +1,10 @@
 import { Row, Col, Button } from 'antd'
+import { BookOutlined } from '@ant-design/icons';
 import Register from './Register'
 import Login from './Login'
 import Favorites from './Favorites'
 import CustomSearch from './CustomSearch'
- 
+
 const headerStyle = {
   background: '#0f0f0f',
   borderBottom: '1px solid #1f1f1f',
@@ -16,7 +17,7 @@ const headerStyle = {
   zIndex: 100,
   boxShadow: '0 1px 0 #1a1a1a, 0 4px 24px rgba(0,0,0,0.6)',
 }
- 
+
 const logoStyle = {
   fontFamily: "'Bebas Neue', 'Impact', sans-serif",
   fontSize: 26,
@@ -26,8 +27,9 @@ const logoStyle = {
   alignItems: 'center',
   gap: 10,
   userSelect: 'none',
+  cursor: 'pointer',
 }
- 
+
 const accentDot = {
   display: 'inline-block',
   width: 8,
@@ -36,18 +38,26 @@ const accentDot = {
   background: '#e63232',
   boxShadow: '0 0 8px #e63232aa',
 }
- 
-function PageHeader({ loggedIn, signoutOnClick, signinOnSuccess, favoriteItems, onSearch }) {
+
+function PageHeader({ loggedIn, signoutOnClick, signinOnSuccess, favoriteItems, onSearch, onClearSearch }) {
   return (
     <div style={headerStyle}>
       <Row align="middle" style={{ width: '100%' }} wrap={false}>
 
- 
-        {/* Center — Search bar inline in header */}
+        {/* Left — Logo */}
+        <Col flex="180px">
+          <div style={logoStyle} onClick={onClearSearch}>
+            <span style={accentDot} />
+            <BookOutlined style={{ color: '#e63232', fontSize: 22 }} />
+            <span>BOOK<span style={{ color: '#e63232' }}>REC</span></span>
+          </div>
+        </Col>
+
+        {/* Center — Search bar */}
         <Col flex="auto" style={{ display: 'flex', justifyContent: 'center', padding: '0 24px' }}>
           <CustomSearch onSuccess={onSearch} headerMode />
         </Col>
- 
+
         {/* Right — Auth */}
         <Col flex="200px" style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -91,5 +101,5 @@ function PageHeader({ loggedIn, signoutOnClick, signinOnSuccess, favoriteItems, 
     </div>
   )
 }
- 
+
 export default PageHeader

@@ -1,5 +1,7 @@
 const SERVER_ORIGIN = '/api';
 
+// ─── Authentication ────────────────────────────────────────────────
+
 const loginUrl = `${SERVER_ORIGIN}/login`;
 
 export const login = (credential) => {
@@ -45,48 +47,47 @@ export const logout = () => {
   })
 }
 
-const topGamesUrl = `${SERVER_ORIGIN}/game`;
+// ─── Book Search ───────────────────────────────────────────────────
 
-export const getTopGames = () => {
-  return fetch(topGamesUrl).then((response) => {
+/**
+ * Search books by query string with optional pagination.
+ * Backend: GET /api/books/search?query=...&page=...
+ * Returns: { books: BookWebDto[] }
+ */
+export const searchBooks = (query, page = 1) => {
+  const params = new URLSearchParams();
+  params.append('query', query);
+  if (page) params.append('page', page);
+
+  return fetch(`${SERVER_ORIGIN}/books/search?${params.toString()}`, {
+    credentials: 'include',
+  }).then((response) => {
     if (response.status !== 200) {
-      throw Error('Fail to get top games');
+      throw Error('Fail to search books');
     }
     return response.json();
   })
 }
 
-const getGameDetailsUrl = `${SERVER_ORIGIN}/game?game_name=`;
+// ─── Recommendations ───────────────────────────────────────────────
 
-const getGameDetails = (gameName) => {
-  return fetch(`${getGameDetailsUrl}${encodeURIComponent(gameName)}`).then((response) => {
+/**
+ * Fetch personalized book recommendations.
+ * Backend: GET /feed
+ * Returns: { friend_approved: BookWebDto[], for_you: BookWebDto[] }
+ */
+export const getRecommendations = () => {
+  return fetch('/feed', {
+    credentials: 'include',
+  }).then((response) => {
     if (response.status !== 200) {
-      throw Error('Fail to find the game');
-    }
-    return response.json();
-  });
-}
-
-const searchGameByIdUrl = `${SERVER_ORIGIN}/search?game_id=`;
-
-export const searchGameById = (gameId) => {
-  return fetch(`${searchGameByIdUrl}${gameId}`).then((response) => {
-    if (response.status !== 200) {
-      throw Error('Fail to find the game');
+      throw Error('Fail to get recommendations');
     }
     return response.json();
   })
 }
 
-export const searchGameByName = (gameName) => {
-  return getGameDetails(gameName).then((data) => {
-    const game = Array.isArray(data) ? data[0] : data;
-    if (game && game.id) {
-      return searchGameById(game.id);
-    }
-    throw Error('Fail to find the game')
-  })
-}
+// ─── Favorites ─────────────────────────────────────────────────────
 
 const favoriteItemUrl = `${SERVER_ORIGIN}/favorite`;
 
@@ -127,57 +128,14 @@ export const getFavoriteItem = () => {
   })
 }
 
-const getRecommendedItemsUrl = `${SERVER_ORIGIN}/recommendation`;
+// ─── Helpers ───────────────────────────────────────────────────────
 
 /**
- * Fetch personalized recommendations for a logged-in user.
- * Optionally pass CCL labels to exclude (e.g. ['SexualThemes', 'Gambling']).
+ * Returns the Gutenberg.org URL for a book by its ID.
  */
-export const getRecommendations = (cclExclusions = []) => {
-  const params = new URLSearchParams();
-  cclExclusions.forEach((label) => params.append('cclExclusions', label));
-  const url = cclExclusions.length
-    ? `${getRecommendedItemsUrl}?${params.toString()}`
-    : getRecommendedItemsUrl;
-
-  return fetch(url, {
-    credentials: 'include',
-  }).then((response) => {
-    if (response.status !== 200) {
-      throw Error('Fail to get recommended item');
-    }
-    return response.json();
-  })
-}
-
-export const getResourcesForTopGames = (gameIds, limitEach = 10) => {
-  return Promise.allSettled(gameIds.map((id) => searchGameById(id)))
-    .then((results) => {
-      const merged = { streams: [], videos: []};
-      results.forEach((result) => {
-        if (result.status === 'fulfilled') {
-          const r = result.value;
-          if (r.streams) merged.streams.push(...r.streams);
-          if (r.videos)  merged.videos.push(...r.videos);
-        }
-      });
-      return {
-        streams: merged.streams.slice(0, limitEach),
-        videos:  merged.videos.slice(0, limitEach),
-      };
-    });
-};
-
-/**
- * Resolves the correct external URL for any item type.
- * - STREAM: constructed from broadcaster_name since the API doesn't return a url field
- * - VIDEO / CLIP: use the url field directly
- */
-export const getItemUrl = (item) => {
-  if (item.item_type === 'STREAM') {
-    // broadcaster_name may be display-formatted (e.g. "OW_ESPORTS_JP"),
-    // Twitch channel URLs are always lowercase
-    return `https://www.twitch.tv/${item.broadcaster_name.toLowerCase()}`;
+export const getBookUrl = (book) => {
+  if (book?.gutenbergId) {
+    return `https://www.gutenberg.org/ebooks/${book.gutenbergId}`;
   }
-  return item.url || '#';
-};
+  return '#';
+}
