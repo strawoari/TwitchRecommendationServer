@@ -32,58 +32,34 @@ import org.springframework.security.web.authentication.logout.HttpStatusReturnin
 @Configuration
 public class AppConfig {
 
-    @Value("${rapidapi.gutenberg.key}")
-    private String apiKey;
-
-    @Value("${rapidapi.gutenberg.host}")
-    private String apiHost;
-
-    @Bean
-    public RequestInterceptor rapidApiInterceptor() {
-        return (RequestTemplate template) -> {
-            // Inject headers for all requests made by the 'gutenberg-api' client
-            if ("gutenberg-api".equals(template.feignTarget().name())) {
-                template.header("x-rapidapi-key", apiKey);
-                template.header("x-rapidapi-host", apiHost);
-                template.header("Content-Type", "application/json");
-            }
-        };
-    }
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf().disable()
-                .authorizeHttpRequests(auth ->
-                        auth
-                                .requestMatchers(String.valueOf(
-                                        PathRequest.toStaticResources().atCommonLocations())).permitAll()
-                                .requestMatchers(HttpMethod.GET, "/", "/index.html", "/*.json", "/*.png", "/static/**").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/login", "/register", "/logout").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/recommendation", "/game").permitAll()
-                                .requestMatchers("/actuator/**").permitAll()
-                                .anyRequest().authenticated()
-                )
-                .exceptionHandling()
-                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-                .and()
-                .formLogin()
-                .successHandler((req, res, auth) -> res.setStatus(HttpStatus.NO_CONTENT.value()))
-                .failureHandler(new SimpleUrlAuthenticationFailureHandler())
-                .and()
-                .logout()
-                .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT));
+            .csrf().disable()
+            .authorizeHttpRequests(auth ->
+                auth
+                    .requestMatchers(String.valueOf(
+                            PathRequest.toStaticResources().atCommonLocations())).permitAll()
+                    .requestMatchers(HttpMethod.GET, "/", "/index.html", "/*.json", "/*.png", "/static/**").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/login", "/register", "/logout").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/books/*", "/feed").permitAll()
+                    .requestMatchers("/actuator/**").permitAll()
+                    .anyRequest().authenticated()
+            )
+            .exceptionHandling()
+            .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+            .and()
+            .formLogin()
+            .successHandler((req, res, auth) -> res.setStatus(HttpStatus.NO_CONTENT.value()))
+            .failureHandler(new SimpleUrlAuthenticationFailureHandler())
+            .and()
+            .logout()
+            .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT));
         return http.build();
     }
 
     @Bean
-    UserDetailsManager users(DataSource dataSource) {
-        return new JdbcUserDetailsManager(dataSource);
-    }
-
-
-    @Bean
-    PasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 }

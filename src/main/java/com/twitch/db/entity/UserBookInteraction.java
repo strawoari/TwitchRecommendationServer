@@ -1,17 +1,15 @@
 package com.twitch.db.entity;
 
-
 import com.twitch.model.InteractionType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Table;
 import jakarta.persistence.Id;
-
-
-import java.time.Instant;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,10 +25,18 @@ import lombok.ToString;
 @Entity
 @Table(name = "user_book_interactions")
 public class UserBookInteraction {
-    @Id @GeneratedValue
+
+    @Id
+    @GeneratedValue
     private Long id;
-    private Long userId;
-    private Long bookId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_id")
+    private Book book;
 
     @Enumerated(EnumType.STRING)
     private InteractionType type; // LIKED, WATCHLIST, RATED

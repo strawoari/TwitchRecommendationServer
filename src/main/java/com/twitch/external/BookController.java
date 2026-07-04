@@ -1,8 +1,14 @@
 package com.twitch.external;
 
+import com.twitch.db.transformer.BookTransformer;
 import com.twitch.model.BookSearchResultDto;
+import com.twitch.model.BookWebDto;
 import com.twitch.model.SearchResultWebDto;
 import java.util.ArrayList;
+import java.util.List;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,14 +16,24 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/books")
 public class BookController {
 
-    private final BookApiClient bookApiClient;
+    private final BookSyncService bookSyncService;
 
-    public BookController(BookApiClient bookApiClient) {
-        this.bookApiClient = bookApiClient;
+    // Removed unused BookApiClient dependency
+    public BookController(BookSyncService bookSyncService) {
+        this.bookSyncService = bookSyncService;
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<BookWebDto> getBook(@PathVariable Long gutenbergId) {
+        BookWebDto book = bookSyncService.getBookById(gutenbergId);
+        if (book == null) {
+            return ResponseEntity.notFound().build(); // Better practice than returning 200 OK with null
+        }
+        return ResponseEntity.ok(book);
     }
 
     @GetMapping("/search")
-    public ResponseEntity<SearchResultWebDto> searchMovies(
+    public ResponseEntity<SearchResultWebDto> searchBooks(
             @RequestParam String query,
             @RequestParam(required = false, defaultValue = "1") Integer page) {
 
@@ -25,7 +41,7 @@ public class BookController {
             return ResponseEntity.badRequest().build();
         }
 
-        BookSearchResultDto results = bookApiClient.searchBooks(query.trim(), page);
-        return ResponseEntity.ok(new SearchResultWebDto(new ArrayList<>()));
+        SearchResultWebDto result = bookSyncService.searchBooks(query.trim(), page);
+        return ResponseEntity.ok(result);
     }
 }

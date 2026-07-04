@@ -16,6 +16,6 @@ public record BookDto(
         @JsonProperty("download_count") Integer downloadCount,
         String issued,
         @JsonProperty("reading_ease_score") String readingEaseScore,
-        @JsonProperty("cover_image") String coverImage
-) {
-}
+        @JsonProperty("cover_image") String coverImage,
+        String summary
+) {}

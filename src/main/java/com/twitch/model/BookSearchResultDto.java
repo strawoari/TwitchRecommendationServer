@@ -1,12 +1,13 @@
 package com.twitch.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record BookSearchResultDto(
-        @JsonProperty("page") Integer page,
-        @JsonProperty("results") List<BookDto> results,
-        @JsonProperty("total_pages") Integer totalPages,
-        @JsonProperty("total_results") Integer totalResults
+        String next,
+        String previous,
+        @JsonProperty("results") List<BookDto> results
 ) {
 }
